@@ -87,8 +87,8 @@ class JoinSession extends React.Component {
 
     this.state = {
       users: [],
-      latitude: 1,
-      longitude: 1,
+      latitude: null,
+      longitude: null,
       error: null,
       response: null,
     };
@@ -158,61 +158,7 @@ class JoinSession extends React.Component {
   }
 }
 
-class CreateSession extends React.Component {
-  static navigationOptions = ({ navigation }) => ({
-    title: 'Creating...',
-  });
 
-  constructor(props) {
-    super(props);
-    this.state = { text: '...' };
-
-    this.state = {
-      latitude: 1,
-      longitude: 1,
-      error: null,
-    };
-  }
-
-  componentDidMount() {
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        this.setState({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-          error: null,
-        });
-      },
-      (error) => this.setState({ error: error.message }),
-      { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 },
-    );
-  }
-
-  render() {
-    const { params } = this.props.navigation.state;
-    const { navigate } = this.props.navigation;
-    return (
-      <View>
-
-        <MapView
-          initialRegion={{
-            latitude: this.state.latitude,
-            longitude: this.state.longitude,
-            latitudeDelta: 0,
-            longitudeDelta: 0,
-          }}
-        style={styles.mapCreate}></MapView>
-
-          <View style={{ flexGrow: 1, alignItems: 'center', justifyContent: 'center' }}>
-            <Text>Latitude: {this.state.latitude}</Text>
-            <Text>Longitude: {this.state.longitude}</Text>
-            {this.state.error ? <Text>Error: {this.state.error}</Text> : null}
-          </View>
-
-      </View>
-    );
-  }
-}
 
 class HomeScreen extends React.Component {
   static navigationOptions = ({ navigation }) => ({
@@ -267,7 +213,15 @@ class HomeScreen extends React.Component {
                   'Accept': 'application/json',
                   'Content-Type': 'application/json',
                 }
-              }).then((res) => console.log(res))
+              })
+              //.then((res) => console.log(res))
+              .then((res3) => {
+                fetch(`http://91adbe76.ngrok.io/room/${global.qrcode}/join/${global.username}`, {method: 'POST'})
+                .then((res4) => {
+                  fetch(`http://91adbe76.ngrok.io/room/${global.qrcode}/refresh/${global.username}/${position.coords.latitude}/${position.coords.longitude}`, {method: 'POST'})
+                })
+                console.log(res)
+              })
               .catch((err) => console.log(err))
               navigate('Join')}
             }
@@ -285,7 +239,6 @@ class HomeScreen extends React.Component {
 const mus_mark2 = StackNavigator({
   Splash: { screen: SplashScreen },
   Join: { screen: JoinSession },
-  Create: { screen: CreateSession },
   Home: { screen: HomeScreen },
 });
 
