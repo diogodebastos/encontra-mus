@@ -86,64 +86,73 @@ class JoinSession extends React.Component {
     this.state = { text: '...' };
 
     this.state = {
+      users: [],
       latitude: 1,
       longitude: 1,
       error: null,
+      response: null,
     };
   }
 
   componentDidMount() {
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        console.log(position)
-        this.setState({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-          error: null,
-        });
-        fetch(`http://91adbe76.ngrok.io/room/${global.qrcode}/refresh/${global.username}/${this.state.latitude}/${this.state.longitude}`, {
-          method: 'POST',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-          }
+        fetch(`http://91adbe76.ngrok.io/room/${global.qrcode}/refresh/${global.username}/${position.coords.latitude}/${position.coords.longitude}`, {method: 'POST'})
+        .then((res1) => {
+          fetch(`http://91adbe76.ngrok.io/room/${global.qrcode}/get`)
+          .then((res2) => {
+            return res2.json()
+          })
+          .then((json) => {
+            let users = json.users_json
+            this.setState({users: users})
+          })
+          .catch((err) => {
+            this.setState(err: err)
+          })
         })
-        .then((res) => fetch(`http://91adbe76.ngrok.io/room/${global.qrcode}/get`, {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-          }
+        .catch((err) => {
+          this.setState(err: err)
         })
-        .then((res) => res.json()).then((response) => console.log(response))
-        .catch((err) => this.setState({ error: err.message })))
-        .catch((err) => this.setState({ error: err.message }));
-
-
-      },() => 'o', { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 }
+      },
+      () => {},
+      { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 }
     );
   }
 
   render() {
     const { params } = this.props.navigation.state;
     const { navigate } = this.props.navigation;
+
+    let markers = [];
+    this.state.users.forEach((u, index) => {
+      markers.push(
+        <MapView.Marker
+          key={index}
+          coordinate={{latitude: u.lat, longitude: u.lng}}
+          title={u.username}
+        />
+      )
+    })
+
     return (
       <View>
         <MapView
           initialRegion={{
-            latitude: this.state.latitude,
-            longitude: this.state.longitude,
+            latitude: this.state.users[0] !== undefined ? this.state.users[0].lat : 1,
+            longitude: this.state.users[0] !== undefined ? this.state.users[0].lng : 1,
             latitudeDelta: 0,
             longitudeDelta: 0,
           }}
-        style={styles.mapCreate}></MapView>
+          style={styles.mapCreate}>
+          {markers}
+        </MapView>
 
-          <View style={{ flexGrow: 1, alignItems: 'center', justifyContent: 'center' }}>
-            <Text>Latitude: {this.state.latitude}</Text>
-            <Text>Longitude: {this.state.longitude}</Text>
-            {this.state.error ? <Text>Error: {this.state.error}</Text> : null}
-          </View>
-
+        <View style={{ flexGrow: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <Text>Latitude: {this.state.latitude}</Text>
+          <Text>Longitude: {this.state.longitude}</Text>
+          {this.state.error ? <Text>Error: {this.state.error}</Text> : null}
+        </View>
       </View>
     );
   }
@@ -219,47 +228,39 @@ class HomeScreen extends React.Component {
   render() {
     const { params } = this.props.navigation.state;
     const { navigate } = this.props.navigation;
+
     return (
       <View>
         <LinearGradient colors={['#E57C7A', '#E5A27A']} style={styles.joinButton}>
-
           <TextInput
             style={styles.joinBox}
-            //onChangeText={(text) => this.setState({glo: text})}
-            //value={this.state.text1}
             onChangeText={(text) => global.qrcode = text}
             value={global.qrcode}
           />
           <Button
-          onPress={() => {
-            //console.log(this.state.text1)
-            fetch(`http://91adbe76.ngrok.io/room/${global.qrcode}/join/${global.username}`, {
-              method: 'POST',
-              headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-              }
-            }).then((res) => console.log(res))
-            .catch((err) => console.log(err))
-            navigate('Join')}
-          }
+            onPress={() => {
+              fetch(`http://91adbe76.ngrok.io/room/${global.qrcode}/join/${global.username}`, {method: 'POST'})
+              .then((res) => {
+                navigate('Join')
+                console.log(res)
+              })
+              .catch((err) => {
+                console.log(err)
+              })
+            }}
             title="Join a Friend's Party"
           >
           </Button>
         </LinearGradient>
 
         <LinearGradient colors={['#5C258D', '#4389A2']} style={styles.createButton}>
-
           <TextInput
             style={styles.createBox}
-            //onChangeText={(text) => this.setState({text2: text})}
-            //value={this.state.text2}
             onChangeText={(text) => global.qrcode = text}
-            value={global.qrcode}
-          />
+            value={global.qrcode} />
+
           <Button
             onPress={() => {
-              //console.log(this.state.text2)
               fetch(`http://91adbe76.ngrok.io/room/${global.qrcode}/create`, {
                 method: 'POST',
                 headers: {
