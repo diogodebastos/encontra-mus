@@ -107,11 +107,20 @@ class JoinSession extends React.Component {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
           }
-        }).then((res) => console.log(res))
-        .catch((err) => console.log(err))
-      },
-      (error) => this.setState({ error: error.message }),
-      { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 },
+        })
+        .then((res) => fetch(`http://91adbe76.ngrok.io/room/${global.qrcode}/get`, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          }
+        })
+        .then((res) => res.json()).then((response) => console.log(response))
+        .catch((err) => this.setState({ error: err.message })))
+        .catch((err) => this.setState({ error: err.message }));
+
+
+      },() => 'o', { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 }
     );
   }
 
