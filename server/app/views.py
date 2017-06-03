@@ -26,8 +26,6 @@ def join(qrcode, username):
 	room = Room.query.filter_by(qrcode=qrcode).first()
 	user = User.query.filter_by(username=username, room_id=room.id).first()
 	print(user)
-	#user = User.query.filter_by
-	#user = User.query.filter_by(room_id = room.id, username=username).first()
 	if user == None:
 		user = User(username=username,
 			author = room)
