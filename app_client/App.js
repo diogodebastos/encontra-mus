@@ -101,6 +101,14 @@ class JoinSession extends React.Component {
           longitude: position.coords.longitude,
           error: null,
         });
+        fetch(`http://91adbe76.ngrok.io/room/${global.qrcode}/refresh/${global.username}/${this.state.latitude}/${this.state.longitude}`, {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          }
+        }).then((res) => console.log(res))
+        .catch((err) => console.log(err))
       },
       (error) => this.setState({ error: error.message }),
       { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 },
@@ -142,8 +150,8 @@ class CreateSession extends React.Component {
     this.state = { text: '...' };
 
     this.state = {
-      latitude: null,
-      longitude: null,
+      latitude: 1,
+      longitude: 1,
       error: null,
     };
   }
@@ -172,8 +180,8 @@ class CreateSession extends React.Component {
           initialRegion={{
             latitude: this.state.latitude,
             longitude: this.state.longitude,
-            latitudeDelta: 0.0922,
-            longitudeDelta: 0.0421,
+            latitudeDelta: 0,
+            longitudeDelta: 0,
           }}
         style={styles.mapCreate}></MapView>
 
@@ -208,13 +216,15 @@ class HomeScreen extends React.Component {
 
           <TextInput
             style={styles.joinBox}
-            onChangeText={(text) => this.setState({text1: text})}
-            value={this.state.text1}
+            //onChangeText={(text) => this.setState({glo: text})}
+            //value={this.state.text1}
+            onChangeText={(text) => global.qrcode = text}
+            value={global.qrcode}
           />
           <Button
           onPress={() => {
-            console.log(this.state.text1)
-            fetch(`http://91adbe76.ngrok.io/room/${this.state.text1}/join/${global.username}`, {
+            //console.log(this.state.text1)
+            fetch(`http://91adbe76.ngrok.io/room/${global.qrcode}/join/${global.username}`, {
               method: 'POST',
               headers: {
                 'Accept': 'application/json',
@@ -233,13 +243,15 @@ class HomeScreen extends React.Component {
 
           <TextInput
             style={styles.createBox}
-            onChangeText={(text) => this.setState({text2: text})}
-            value={this.state.text2}
+            //onChangeText={(text) => this.setState({text2: text})}
+            //value={this.state.text2}
+            onChangeText={(text) => global.qrcode = text}
+            value={global.qrcode}
           />
           <Button
             onPress={() => {
-              console.log(this.state.text2)
-              fetch(`http://91adbe76.ngrok.io/room/${this.state.text2}/create`, {
+              //console.log(this.state.text2)
+              fetch(`http://91adbe76.ngrok.io/room/${global.qrcode}/create`, {
                 method: 'POST',
                 headers: {
                   'Accept': 'application/json',
@@ -247,7 +259,7 @@ class HomeScreen extends React.Component {
                 }
               }).then((res) => console.log(res))
               .catch((err) => console.log(err))
-              navigate('Create')}
+              navigate('Join')}
             }
             title="Create a Party"
           >
