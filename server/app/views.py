@@ -24,9 +24,13 @@ def create(qrcode):
 @app.route('/room/<qrcode>/join/<username>')
 def join(qrcode, username):
 	room = Room.query.filter_by(qrcode=qrcode).first()
-	user = User.query.filter_by(username=username).first()
+	user = User.query.filter_by(username=username, room_id=room.id).first()
+	print(user)
+	#user = User.query.filter_by
+	#user = User.query.filter_by(room_id = room.id, username=username).first()
 	if user == None:
-		user = User(username = username)
+		user = User(username=username,
+			author = room)
 		db.session.add(user)
 		db.session.commit()
 		return '%s joined %s' % (username, qrcode)
@@ -36,7 +40,9 @@ def join(qrcode, username):
 @app.route('/room/<qrcode>/refresh/<username>/<lat>/<lng>')
 def refresh(qrcode, username, lat, lng):
 	room = Room.query.filter_by(qrcode=qrcode).first()
-	user = User.query.filter_by(username=username).first()
+	user = User.query.filter_by(room_id=room.id, username=username).first()
+	print('User: %s') %user
+	#user = User.query.filter_by(username=username).first()
 	if user != None:
 		db.session.delete(user)
 		user = User(username = username,
@@ -66,3 +72,21 @@ def get(qrcode):
 		i = i+1  
 
 	return jsonify({'users_json': users_json})
+
+@app.route('/room/<qrcode>/logout/<username>')
+def logout(qrcode, username):
+	room = Room.query.filter_by(qrcode=qrcode).first()
+	user = User.query.filter_by(room_id=room.id, username=username).first()
+	db.session.delete(user)
+	db.session.commit()
+	return 'User deleted'
+
+@app.route('/room/<qrcode>/destroy')
+def destroy(qrcode):
+	room = Room.query.filter_by(qrcode=qrcode).first()
+	users = room.users
+	for u in users:
+		db.session.delete(u)
+	db.session.delete(room)
+	db.session.commit()
+	return 'Room closed'
