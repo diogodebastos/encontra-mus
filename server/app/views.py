@@ -8,7 +8,7 @@ def index():
     return render_template('index.html',
     	title='Encontra-')
 
-@app.route('/room/<qrcode>/create')
+@app.route('/room/<qrcode>/create', methods=['POST'])
 def create(qrcode):
 	room = Room.query.filter_by(qrcode=qrcode).first()
 	if room is None:
@@ -16,12 +16,12 @@ def create(qrcode):
 		db.session.add(r)
 		db.session.commit()
 		print('Room %s created') % qrcode
-		return 'Room %s created' % qrcode
+		return jsonify({'Message': 'Room %s created' % qrcode})
 	else:
-		return 'Room already exists'
+		return jsonify({'Message': 'Room already exists'})
 
 
-@app.route('/room/<qrcode>/join/<username>')
+@app.route('/room/<qrcode>/join/<username>', methods=['POST'])
 def join(qrcode, username):
 	room = Room.query.filter_by(qrcode=qrcode).first()
 	user = User.query.filter_by(username=username, room_id=room.id).first()
@@ -33,11 +33,11 @@ def join(qrcode, username):
 			author = room)
 		db.session.add(user)
 		db.session.commit()
-		return '%s joined %s' % (username, qrcode)
+		return jsonify({'Message': '%s joined room %s' % (username, qrcode)})
 	else:
-		return 'Choose another username'
+		return jsonify({'Message': 'Choose another username'})
 
-@app.route('/room/<qrcode>/refresh/<username>/<lat>/<lng>')
+@app.route('/room/<qrcode>/refresh/<username>/<lat>/<lng>', methods=['POST'])
 def refresh(qrcode, username, lat, lng):
 	room = Room.query.filter_by(qrcode=qrcode).first()
 	user = User.query.filter_by(room_id=room.id, username=username).first()
@@ -51,9 +51,9 @@ def refresh(qrcode, username, lat, lng):
 			author = room)
 		db.session.add(user) 
 		db.session.commit()
-		return '%s refreshed' % (username)
+		return  jsonify({'Message': '%s was updated' % (username)})
 	else:
-		return 'ERROR'
+		return  jsonify({'Message': 'Error updating %s' % (username)})
 
 @app.route('/room/<qrcode>/get', methods=['GET'])
 def get(qrcode):
@@ -73,15 +73,15 @@ def get(qrcode):
 
 	return jsonify({'users_json': users_json})
 
-@app.route('/room/<qrcode>/logout/<username>')
+@app.route('/room/<qrcode>/logout/<username>', methods=['POST'])
 def logout(qrcode, username):
 	room = Room.query.filter_by(qrcode=qrcode).first()
 	user = User.query.filter_by(room_id=room.id, username=username).first()
 	db.session.delete(user)
 	db.session.commit()
-	return 'User deleted'
+	return  jsonify({'Message': '%s was removed' %(username)}) 
 
-@app.route('/room/<qrcode>/destroy')
+@app.route('/room/<qrcode>/destroy', methods=['POST'])
 def destroy(qrcode):
 	room = Room.query.filter_by(qrcode=qrcode).first()
 	users = room.users
@@ -89,4 +89,4 @@ def destroy(qrcode):
 		db.session.delete(u)
 	db.session.delete(room)
 	db.session.commit()
-	return 'Room closed'
+	return jsonify({'Message': 'Room %s is closed' %qrcode})
